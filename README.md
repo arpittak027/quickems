@@ -1,4 +1,4 @@
-# 🚀 FullStack EMS (Employee Management System)
+# 🚀 (Employee Management System - FullStack EMS
 
 A **production-grade full-stack Employee Management System (EMS)** built using modern web technologies. This project demonstrates real-world backend architecture, authentication systems, database design, and scalable frontend integration.
 
