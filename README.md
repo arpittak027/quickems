@@ -3,6 +3,15 @@
 A **production-grade full-stack Employee Management System (EMS)** built using modern web technologies. This project demonstrates real-world backend architecture, authentication systems, database design, and scalable frontend integration.
 
 ---
+🌐 Live Demo
+
+🔗 Frontend (Deployed on Vercel):
+👉 https://employee-management-system-rosy-ten.vercel.app/login
+
+🧪 Test Credentials:
+
+Email: prakashratnesh2005@gmail.com
+Password: admin123
 
 # 📌 Project Overview
 
