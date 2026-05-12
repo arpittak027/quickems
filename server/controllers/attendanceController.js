@@ -1,4 +1,4 @@
-import { inngest } from "../inngest/index.js";
+import { sendInngestEvent } from "../inngest/index.js";
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
 
@@ -24,7 +24,7 @@ export const clockInOut = async (req, res) => {
         const now = new Date();
 
         if(!existing){
-            const isLate = now.getHours() >= 9 && now.getMinutes() > 0;
+            const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
             const attendance = await Attendance.create({
                 employeeId: employee._id,
                 date: today,
@@ -32,7 +32,7 @@ export const clockInOut = async (req, res) => {
                 status: isLate ? "LATE" : "PRESENT"
             })
 
-            await inngest.send({
+            await sendInngestEvent({
                 name: "employee/check-out",
                 data: {
                     employeeId: employee._id,

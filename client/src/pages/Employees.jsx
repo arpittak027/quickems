@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { dummyEmployeeData, DEPARTMENTS } from "../assets/assets"
+import { DEPARTMENTS } from "../assets/assets"
 import { Plus, Search, X } from "lucide-react"
 import EmployeeCard from "../components/EmployeeCard"
 import EmployeeForm from "../components/EmployeeForm"
@@ -22,7 +22,7 @@ const Employees = () => {
       const res = await api.get(url)
       setEmployees(res.data)
     } catch (error) {
-      console.error("Failed to fetch employees");
+      console.error("Failed to fetch employees", error);
     }finally{
       setLoading(false)
     }

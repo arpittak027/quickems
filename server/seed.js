@@ -1,13 +1,18 @@
 import "dotenv/config";
 import connectDB from "./config/db.js";
 import User from "./models/User.js";
+import Employee from "./models/Employee.js";
 import bcrypt from 'bcrypt'
 
-const TemporaryPassword = "admin123";
+const ADMIN_PASSWORD = "admin123";
+const README_ADMIN_EMAIL = "prakashratnesh2005@gmail.com";
+const EMPLOYEE_EMAIL = "employee@example.com";
+const EMPLOYEE_PASSWORD = "employee123";
 
 async function registerAdmin(){
     try {
-        const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@example.com";
+        const adminEmails = Array.from(new Set([ADMIN_EMAIL, README_ADMIN_EMAIL]));
 
         if(!ADMIN_EMAIL){
             console.error('Missing ADMIN_EMAIL env variable')
@@ -16,25 +21,59 @@ async function registerAdmin(){
 
         await connectDB()
 
-        const existingAdmin = await User.findOne({email: process.env.ADMIN_EMAIL});
+        const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10)
+        const adminUsers = await Promise.all(adminEmails.map((email) => User.findOneAndUpdate({
+                email,
+            }, {
+                password: adminPassword,
+                role: "ADMIN",
+            }, {
+                returnDocument: "after",
+                upsert: true,
+                setDefaultsOnInsert: true,
+            })
+        ))
 
-        if(existingAdmin){
-            console.log("User already exists as role", existingAdmin.role);
-            process.exit(0);
-        }
-
-        const hashedPassword = await bcrypt.hash(TemporaryPassword, 10)
-
-        const admin = await User.create({
-            email: process.env.ADMIN_EMAIL,
-            password: hashedPassword,
-            role: "ADMIN",
+        const employeePassword = await bcrypt.hash(EMPLOYEE_PASSWORD, 10)
+        const employeeUser = await User.findOneAndUpdate({
+            email: EMPLOYEE_EMAIL,
+        }, {
+            password: employeePassword,
+            role: "EMPLOYEE",
+        }, {
+            returnDocument: "after",
+            upsert: true,
+            setDefaultsOnInsert: true,
         })
 
-        console.log("Admin user created");
-        console.log("\nemail:", admin.email);
-        console.log("password:", TemporaryPassword);
-        console.log("\nchange the password after login.");
+        await Employee.findOneAndUpdate({
+            userId: employeeUser._id,
+        }, {
+            userId: employeeUser._id,
+            firstName: "Demo",
+            lastName: "Employee",
+            email: EMPLOYEE_EMAIL,
+            phone: "9999999999",
+            position: "Software Engineer",
+            department: "Engineering",
+            basicSalary: 50000,
+            allowances: 5000,
+            deductions: 1000,
+            employmentStatus: "ACTIVE",
+            joinDate: new Date("2026-01-01"),
+            isDeleted: false,
+            bio: "Local demo employee account",
+        }, {
+            returnDocument: "after",
+            upsert: true,
+            setDefaultsOnInsert: true,
+        })
+
+        console.log("Demo users are ready");
+        console.log("\nAdmin emails:", adminUsers.map((user) => user.email).join(", "));
+        console.log("Admin password:", ADMIN_PASSWORD);
+        console.log("\nEmployee email:", EMPLOYEE_EMAIL);
+        console.log("Employee password:", EMPLOYEE_PASSWORD);
 
         process.exit(0);
     } catch (error) {

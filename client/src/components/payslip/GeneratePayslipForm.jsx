@@ -74,18 +74,18 @@ const GeneratePayslipForm = ({employees, onSuccess}) => {
 
                 {/* Basic Salary */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Basic Salary</label>
-                    <input type="number" name="basicSalary" required placeholder="5000" />
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Basic Salary (INR)</label>
+                    <input type="number" name="basicSalary" required placeholder="50000" />
                 </div>
 
                 {/* Allowances & Deductions  */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Allowances</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Allowances (INR)</label>
                         <input type="number" name="allowances" defaultValue="0" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Deductions</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Deductions (INR)</label>
                         <input type="number" name="deductions" defaultValue="0" />
                     </div>
      

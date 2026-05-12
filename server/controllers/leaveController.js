@@ -1,4 +1,4 @@
-import { inngest } from "../inngest/index.js";
+import { sendInngestEvent } from "../inngest/index.js";
 import Employee from "../models/Employee.js";
 import LeaveApplication from "../models/LeaveApplication.js";
 
@@ -41,7 +41,7 @@ export const createLeave = async (req, res) => {
             status: "PENDING",
         })
 
-        await inngest.send({
+        await sendInngestEvent({
             name: "leave/pending",
             data: {leaveApplicationId: leave._id,}
         })

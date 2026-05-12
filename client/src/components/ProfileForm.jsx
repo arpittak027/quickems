@@ -1,5 +1,5 @@
 import { Loader2, Save, User } from 'lucide-react';
-import React, { useState } from 'react'
+import { useState } from 'react'
 import api from '../api/axios';
 
 const ProfileForm = ({initialData, onSuccess}) => {
@@ -48,15 +48,15 @@ const ProfileForm = ({initialData, onSuccess}) => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Name</label>
-                    <input disabled value={`${initialData.firstName} ${initialData.lastName}`} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
+                    <input disabled value={`${initialData.firstName || ""} ${initialData.lastName || ""}`.trim()} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                    <input disabled value={initialData.email} className='bg-slate-50 text-slate-400 cursor-not-allowed"'/>
+                    <input disabled value={initialData.email || ""} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
                 </div>
                 <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Position</label>
-                    <input disabled value={initialData.position} className='bg-slate-50 text-slate-400 cursor-not-allowed"'/>
+                    <input disabled value={initialData.position || ""} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
                 </div>
             </div>
             <div>

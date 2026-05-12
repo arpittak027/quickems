@@ -1,6 +1,7 @@
 import { ArrowRightIcon, CalendarIcon, DollarSignIcon, FileTextIcon } from 'lucide-react';
 import React from 'react'
 import { Link } from 'react-router-dom';
+import { formatINR } from '../utils/currency';
 
 const EmployeeDashboard = ({data}) => {
     const emp = data.employee;
@@ -20,7 +21,7 @@ const EmployeeDashboard = ({data}) => {
         },
         {
             icon: DollarSignIcon,
-            value: data.latestPayslip ? `$${data.latestPayslip.netSalary?.toLocaleString()}` : "N/A",
+            value: data.latestPayslip ? formatINR(data.latestPayslip.netSalary) : "N/A",
             title: "Latest Payslip",
             subtitle: "Most recent payout",
         },

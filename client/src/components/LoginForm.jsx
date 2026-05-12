@@ -2,13 +2,24 @@ import React, { useState } from 'react'
 import LoginLeftSide from './LoginLeftSide'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, EyeIcon, EyeOffIcon, Loader2Icon } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import toast from 'react-hot-toast'
 
 const LoginForm = ({role, title, subtitle}) => {
+    const demoCredentials = {
+        admin: {
+            email: "admin@example.com",
+            password: "admin123",
+        },
+        employee: {
+            email: "employee@example.com",
+            password: "employee123",
+        },
+    }
 
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
+    const credentials = demoCredentials[role] || { email: "", password: "" }
+    const [email, setEmail] = useState(credentials.email)
+    const [password, setPassword] = useState(credentials.password)
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
@@ -23,7 +34,9 @@ const LoginForm = ({role, title, subtitle}) => {
             await login(email, password, role)
             navigate("/dashboard")
         } catch (error) {
-            toast.error(error.response?.data?.error || error.message || "Login failed")
+            const message = error.response?.data?.error || error.message || "Login failed"
+            setError(message)
+            toast.error(message)
         }finally{
             setLoading(false)
         }
@@ -54,12 +67,12 @@ const LoginForm = ({role, title, subtitle}) => {
             <form className='space-y-5' onSubmit={handleSubmit}>
                 <div>
                     <label className='block text-sm font-medium text-slate-700 mb-2'>Email address</label>
-                    <input type="email" value={email} onChange={(e)=> setEmail(e.target.value)} required placeholder='john@example.com'/>
+                    <input type="email" value={email} onChange={(e)=> setEmail(e.target.value)} required placeholder='john@example.com' autoComplete='email'/>
                 </div>
                 <div>
                     <label className='block text-sm font-medium text-slate-700 mb-2'>Password</label>
                     <div className='relative'>
-                        <input type={showPassword ? 'text' : 'password'} onChange={(e)=> setPassword(e.target.value)} required className='pr-11' placeholder='••••••••'/>
+                        <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e)=> setPassword(e.target.value)} required className='pr-11' placeholder='••••••••' autoComplete='current-password'/>
                         <button type='button' className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors" onClick={()=> setShowPassword(!showPassword)}>
                             {showPassword ? <EyeOffIcon size={18}/> : <EyeIcon size={18}/>}
                         </button>

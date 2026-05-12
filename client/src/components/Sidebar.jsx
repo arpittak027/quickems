@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {Link, useLocation} from 'react-router-dom'
-import { dummyProfileData } from '../assets/assets'
 import {CalendarIcon, ChevronRightIcon, DollarSignIcon, FileTextIcon, LayoutGridIcon, Loader2, LogOutIcon, MenuIcon, SettingsIcon, UserIcon, XIcon} from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import api from '../api/axios'
 
 const Sidebar = () => {
@@ -17,11 +16,6 @@ const Sidebar = () => {
             if(data.firstName) setUserName(`${data.firstName} ${data.lastName || ""}`.trim());
         })
     },[])
-
-    // Close mobile sidebar on route change
-    useEffect(()=>{
-        setMobileOpen(false)
-    },[pathname])
 
     const role = user?.role;
     const navItems = [
@@ -91,7 +85,7 @@ const Sidebar = () => {
                     navItems.map((item)=>{
                     const isActive = pathname.startsWith(item.href)
                     return (
-                        <Link key={item.name} to={item.href} className={`group flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-all duration-150 relative ${isActive ? "bg-indigo-500/12 text-indigo-300" : "text-slate-300 hover:text-white hover:bg-white/4"}`}>
+                        <Link key={item.name} to={item.href} onClick={()=>setMobileOpen(false)} className={`group flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-all duration-150 relative ${isActive ? "bg-indigo-500/12 text-indigo-300" : "text-slate-300 hover:text-white hover:bg-white/4"}`}>
 
                             {isActive && <div className='absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-500'/>}
                             <item.icon className={`w-[17px] h-[17px] shrink-0 ${isActive ? "text-indigo-300" : "text-slate-400 group-hover:text-slate-300"}`}/>

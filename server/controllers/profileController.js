@@ -14,6 +14,9 @@ export const getProfile = async (req, res) => {
                 firstName: "Admin",
                 lastName: "",
                 email: session.email,
+                position: "Administrator",
+                bio: "",
+                isDeleted: false,
             })
         }
         return res.json(employee)
@@ -28,6 +31,7 @@ export const updateProfile = async (req, res) => {
     try {
         const session = req.session;
         const employee = await Employee.findOne({userId: session.userId})
+        if(!employee && session.role === "ADMIN") return res.json({ success: true });
         if(!employee) return res.status(404).json({ error: "Employee not found" });
         if (employee.isDeleted){
             return res.status(403).json({error: "Your account is deactivated. You cannot update your profile.",})

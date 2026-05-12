@@ -7,6 +7,19 @@ import sendEmail from "../config/nodemailer.js";
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "fullstack-ems" });
 
+export const sendInngestEvent = async (event) => {
+    try {
+        if (!process.env.INNGEST_EVENT_KEY && process.env.INNGEST_DEV !== "1") {
+            console.warn(`Skipping Inngest event "${event.name}" because INNGEST_EVENT_KEY is not configured.`);
+            return null;
+        }
+        return await inngest.send(event);
+    } catch (error) {
+        console.warn(`Failed to enqueue Inngest event "${event.name}":`, error.message);
+        return null;
+    }
+}
+
 // Auto Check-out for employees
 const autoCheckOut = inngest.createFunction(
   { id: "auto-check-out", triggers: [{event: "employee/check-out"}] }, 

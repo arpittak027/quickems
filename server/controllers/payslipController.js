@@ -1,5 +1,6 @@
 import Employee from "../models/Employee.js";
 import Payslip from "../models/Payslip.js";
+import mongoose from "mongoose";
 
 // Create payslip
 // POST /api/payslips
@@ -9,6 +10,14 @@ export const createPayslip = async (req, res) => {
 
         if(!employeeId || !month || !year || !basicSalary){
             return res.status(400).json({ error: "Missing fields" });
+        }
+        if(!mongoose.Types.ObjectId.isValid(employeeId)){
+            return res.status(400).json({ error: "Invalid employee" });
+        }
+
+        const employee = await Employee.findById(employeeId);
+        if(!employee || employee.isDeleted){
+            return res.status(404).json({ error: "Employee not found" });
         }
 
         const netSalary = Number(basicSalary) + Number(allowances || 0) - Number(deductions || 0);
@@ -62,9 +71,17 @@ export const getPayslips = async (req, res) => {
 // GET /api/payslips/:id
 export const getPayslipById = async (req, res) => {
     try {
+        const session = req.session;
         const payslip = await Payslip.findById(req.params.id).populate("employeeId").lean();
 
         if(!payslip) return res.status(404).json({ error: "Not found" });
+        if(session.role !== "ADMIN"){
+            const employee = await Employee.findOne({userId: session.userId}).lean();
+            const payslipEmployeeId = payslip.employeeId?._id?.toString();
+            if(!employee || payslipEmployeeId !== employee._id.toString()){
+                return res.status(403).json({ error: "Not authorized" });
+            }
+        }
 
         const result = {
             ...payslip,
