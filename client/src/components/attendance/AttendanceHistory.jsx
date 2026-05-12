@@ -2,7 +2,7 @@ import React from 'react'
 import { getDayTypeDisplay, getWorkingHoursDisplay } from '../../assets/assets'
 import {format} from 'date-fns'
 
-const AttendanceHistory = ({history}) => {
+const AttendanceHistory = ({history, isAdmin}) => {
   return (
     <div className='card overflow-hidden'>
         <div className="px-6 py-4 border-b border-slate-100">
@@ -12,6 +12,7 @@ const AttendanceHistory = ({history}) => {
             <table className="table-modern">
                 <thead>
                     <tr>
+                        {isAdmin && <th className="px-6 py-4">Employee</th>}
                         <th className="px-6 py-4">Date</th>
                         <th className="px-6 py-4">Check In</th>
                         <th className="px-6 py-4">Check Out</th>
@@ -23,7 +24,7 @@ const AttendanceHistory = ({history}) => {
                 <tbody>
                     {history.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="text-center py-12 text-slate-400">
+                            <td colSpan={isAdmin ? 7 : 6} className="text-center py-12 text-slate-400">
                                 No records found
                             </td>
                         </tr>
@@ -32,6 +33,14 @@ const AttendanceHistory = ({history}) => {
                             const dayType = getDayTypeDisplay(record)
                             return (
                                 <tr key={record._id || record.id}>
+                                    {isAdmin && (
+                                        <td className='px-6 py-4 text-slate-900'>
+                                            <div className='font-medium'>
+                                                {record.employee ? `${record.employee.firstName} ${record.employee.lastName}` : "Unknown Employee"}
+                                            </div>
+                                            <div className='text-xs text-slate-400'>{record.employee?.department || record.employee?.email}</div>
+                                        </td>
+                                    )}
                                     <td className='px-6 py-4 font-medium text-slate-900'>
                                         {format(new Date(record.date), "MMM dd, yyyy")}
                                     </td>

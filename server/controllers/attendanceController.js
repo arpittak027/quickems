@@ -7,6 +7,9 @@ import Employee from "../models/Employee.js";
 export const clockInOut = async (req, res) => {
     try {
         const session = req.session;
+        if(session.role === "ADMIN"){
+            return res.status(403).json({ error: "Admins can review attendance, but cannot clock in or out." });
+        }
         const employee = await Employee.findOne({ userId: session.userId })
         if (!employee) return res.status(404).json({ error: "Employee not found" });
         if (employee.isDeleted) return res.status(403).json({
@@ -77,6 +80,31 @@ export const clockInOut = async (req, res) => {
 export const getAttendance = async (req, res) => {
     try {
         const session = req.session;
+        if(session.role === "ADMIN"){
+            const limit = parseInt(req.query.limit || 100);
+            const history = await Attendance.find()
+                .populate("employeeId", "firstName lastName email position department isDeleted")
+                .sort({date: -1, createdAt: -1})
+                .limit(limit)
+                .lean();
+
+            const data = history.map((record)=>({
+                ...record,
+                id: record._id.toString(),
+                employee: record.employeeId ? {
+                    id: record.employeeId._id.toString(),
+                    firstName: record.employeeId.firstName,
+                    lastName: record.employeeId.lastName,
+                    email: record.employeeId.email,
+                    position: record.employeeId.position,
+                    department: record.employeeId.department,
+                    isDeleted: record.employeeId.isDeleted,
+                } : null,
+            }))
+
+            return res.json({ role: "ADMIN", data });
+        }
+
         const employee = await Employee.findOne({ userId: session.userId })
         if (!employee) return res.status(404).json({ error: "Employee not found" });
 
@@ -84,6 +112,7 @@ export const getAttendance = async (req, res) => {
         const history = await Attendance.find({employeeId: employee._id}).sort({date: -1}).limit(limit)
 
         return res.json({
+            role: "EMPLOYEE",
             data: history,
             employee: {isDeleted: employee.isDeleted}
         })

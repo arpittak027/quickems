@@ -20,6 +20,9 @@ const LeaveHistory = ({leaves, isAdmin, onUpdate}) => {
     }
   return (
      <div className='card overflow-hidden'>
+            <div className="px-6 py-4 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-900">{isAdmin ? "Leave Applications" : "Your Leave History"}</h3>
+            </div>
             <div className="overflow-x-auto">
                 <table className="table-modern">
                     <thead>
