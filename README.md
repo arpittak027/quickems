@@ -1,18 +1,22 @@
-# 🚀 Employee Management System - FullStack EMS
+# QuickEMS - Employee Management System
 
 A **production-grade full-stack Employee Management System (EMS)** built using modern web technologies. This project demonstrates real-world backend architecture, authentication systems, database design, and scalable frontend integration.
 
 ---
-🌐 Live Demo
+## Live Demo
 
-🔗 Frontend (Deployed on Vercel):
-👉 https://employee-management-system-rosy-ten.vercel.app/login
+Frontend:
+https://polite-llama-edf38a.netlify.app/login
 
-🧪 Test Credentials:
+Test Credentials:
 
-Email: prakashratnesh2005@gmail.com
-
+Admin:
+Email: admin@example.com
 Password: admin123
+
+Employee:
+Email: employee@example.com
+Password: employee123
 
 # 📌 Project Overview
 
@@ -78,7 +82,7 @@ Email Service (Brevo SMTP)
 
 * JWT-based authentication
 * Secure password hashing
-* Role-based access control (Admin/User)
+* Role-based access control (Admin/Employee)
 * Protected API routes
 
 ## 👨‍💼 Employee Management
@@ -130,14 +134,18 @@ FullStack-EMS/
 Create a `.env` file inside the `server` folder:
 
 ```
-PORT=5000
-MONGODB_URI=your_mongodb_uri
+PORT=4000
+MONGODB_URI=mongodb+srv://arpittak027:<password>@<cluster-host>/quickems?retryWrites=true&w=majority
 JWT_SECRET=your_secret_key
-ADMIN_EMAIL=your_email
+ADMIN_EMAIL=admin@example.com
 INNGEST_EVENT_KEY=your_key
 INNGEST_SIGNING_KEY=your_key
-BREVO_API_KEY=your_key
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_smtp_password
+SENDER_EMAIL=admin@example.com
 ```
+
+Use the MongoDB Atlas connection string from the `arpittak027` Atlas account for `MONGODB_URI`. Do not commit the real password.
 
 ---
 
@@ -146,8 +154,8 @@ BREVO_API_KEY=your_key
 ## 1️⃣ Clone the repository
 
 ```
-git clone https://github.com/yourusername/your-repo-name.git
-cd FullStack-EMS
+git clone https://github.com/arpittak027/quickems.git
+cd quickems
 ```
 
 ---
@@ -157,6 +165,7 @@ cd FullStack-EMS
 ```
 cd server
 npm install
+npm run db:check
 npm run seed
 npm run server
 ```
@@ -168,7 +177,7 @@ npm run server
 ```
 cd client
 npm install
-npm run start
+npm run dev
 ```
 
 ---
@@ -188,6 +197,7 @@ Password: admin123
 
 * Backend can be deployed on **Vercel / Render**
 * MongoDB hosted on **MongoDB Atlas**
+* Set `MONGODB_URI` and `JWT_SECRET` in the backend host environment variables
 * Update Inngest endpoint after deployment
 
 ---
@@ -224,12 +234,9 @@ Password: admin123
 
 ---
 
-# 👨‍💻 Author
+# Author
 
-**Ratnesh Prakash Yadav**
-
-* Passionate about backend systems & scalable architecture
-* Focused on building real-world production-ready applications
+**Arpittak**
 
 ---
 
@@ -246,8 +253,7 @@ Password: admin123
 
 If you found this project useful or want to collaborate:
 
-* GitHub: https://github.com/alpharatnesh
-* Email: prakashratnesh2005@gmail.com
+* GitHub: https://github.com/arpittak027
 
 ---
 
