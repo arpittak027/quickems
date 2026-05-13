@@ -70,18 +70,18 @@ const ProfileForm = ({initialData, onSuccess}) => {
                     {initialData.readOnly ? "Demo account profiles are read-only." : "This will be displayed on your profile."}
                  </p>
             </div>
-            {initialData.isDeleted ? (
-                <div className='pt-2'>
-                    <div className='p-4 bg-rose-50 border border-rose-200 rounded-xl text-center'>
-                        <p className='text-rose-600 font-medium tracking-tight'>Account Deactivated</p>
-                        <p className='text-sm text-rose-500 mt-0.5'>You can no longer update your profile.</p>
-                    </div>
-                </div>
-            ) : initialData.readOnly ? (
+            {initialData.readOnly ? (
                 <div className='pt-2'>
                     <div className='p-4 bg-slate-50 border border-slate-200 rounded-xl text-center'>
                         <p className='text-slate-700 font-medium tracking-tight'>Read-only demo profile</p>
                         <p className='text-sm text-slate-500 mt-0.5'>This shared account cannot be edited by visitors.</p>
+                    </div>
+                </div>
+            ) : initialData.isDeleted ? (
+                <div className='pt-2'>
+                    <div className='p-4 bg-rose-50 border border-rose-200 rounded-xl text-center'>
+                        <p className='text-rose-600 font-medium tracking-tight'>Account Deactivated</p>
+                        <p className='text-sm text-rose-500 mt-0.5'>You can no longer update your profile.</p>
                     </div>
                 </div>
             ) : (
