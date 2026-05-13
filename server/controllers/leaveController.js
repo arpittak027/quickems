@@ -1,17 +1,24 @@
 import { sendInngestEvent } from "../inngest/index.js";
 import Employee from "../models/Employee.js";
 import LeaveApplication from "../models/LeaveApplication.js";
+import mongoose from "mongoose";
 
 // Create leave
 // POST /api/leaves
 export const createLeave = async (req, res) => {
     try {
         const session = req.session;
-        const employee = await Employee.findOne({userId: session.userId})
+        const isAdmin = session.role === "ADMIN";
+        if(isAdmin && !mongoose.Types.ObjectId.isValid(req.body.employeeId)){
+            return res.status(400).json({ error: "Invalid employee" });
+        }
+        const employee = isAdmin
+            ? await Employee.findById(req.body.employeeId)
+            : await Employee.findOne({userId: session.userId})
         if(!employee) return res.status(404).json({ error: "Employee not found" });
-        if(employee.isDeleted){
+        if(employee.isDeleted || employee.employmentStatus === "INACTIVE"){
             return res.status(403).json({
-                 error: "Your account is deactivated. You cannot apply for leave.",
+                 error: isAdmin ? "Selected employee is inactive." : "Your account is deactivated. You cannot apply for leave.",
             })
         }
 
@@ -19,6 +26,11 @@ export const createLeave = async (req, res) => {
 
         if(!type || !startDate || !endDate || !reason){
             return res.status(400).json({ error: "Missing fields" });
+        }
+
+        const requestedStatus = isAdmin ? (req.body.status || "APPROVED") : "PENDING";
+        if(!["PENDING", "APPROVED", "REJECTED"].includes(requestedStatus)){
+            return res.status(400).json({ error: "Invalid leave status" });
         }
 
         const today = new Date();
@@ -38,13 +50,15 @@ export const createLeave = async (req, res) => {
             startDate: new Date(startDate),
             endDate: new Date(endDate),
             reason,
-            status: "PENDING",
+            status: requestedStatus,
         })
 
-        await sendInngestEvent({
-            name: "leave/pending",
-            data: {leaveApplicationId: leave._id,}
-        })
+        if(leave.status === "PENDING"){
+            await sendInngestEvent({
+                name: "leave/pending",
+                data: {leaveApplicationId: leave._id,}
+            })
+        }
 
         return res.json({ success: true, data: leave });
         

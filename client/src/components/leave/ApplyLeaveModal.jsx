@@ -3,9 +3,10 @@ import React, { useState } from 'react'
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
-const ApplyLeaveModal = ({open, onClose, onSuccess}) => {
+const ApplyLeaveModal = ({open, onClose, onSuccess, isAdmin = false, employees = []}) => {
 
     const [loading, setLoading] = useState(false);
+    const activeEmployees = employees.filter((employee)=> !employee.isDeleted && employee.employmentStatus !== "INACTIVE")
 
     const today = new Date();
     const tomorrow = new Date(today)
@@ -36,8 +37,8 @@ const ApplyLeaveModal = ({open, onClose, onSuccess}) => {
             {/* ----- Header------*/}
             <div className='flex items-center justify-between p-6 pb-0'>
                 <div>
-                    <h2 className='text-lg font-semibold text-slate-800'>Apply for Leave</h2>
-                    <p className='text-sm text-slate-400 mt-0.5'>Submit your leave request for approval</p>
+                    <h2 className='text-lg font-semibold text-slate-800'>{isAdmin ? "Add Employee Leave" : "Apply for Leave"}</h2>
+                    <p className='text-sm text-slate-400 mt-0.5'>{isAdmin ? "Record approved, rejected, or pending leave for an employee" : "Submit your leave request for approval"}</p>
                 </div>
                 <button onClick={onClose} className='p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600'>
                      <X className="w-5 h-5" />
@@ -46,6 +47,23 @@ const ApplyLeaveModal = ({open, onClose, onSuccess}) => {
 
             {/* --------Form-------- */}
             <form onSubmit={handleSubmit} className='p-6 space-y-5'>
+                 {isAdmin && (
+                    <div>
+                        <label className='flex items-center gap-2 text-sm font-medium text-slate-700 mb-2'>
+                            <FileText className="w-4 h-4 text-slate-400"/>
+                            Employee
+                        </label>
+                        <select name="employeeId" required disabled={!activeEmployees.length}>
+                            <option value="">Select employee</option>
+                            {activeEmployees.map((employee)=>(
+                                <option key={employee.id} value={employee.id}>
+                                    {employee.firstName} {employee.lastName} - {employee.department}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                 )}
+
                  {/* --- leave type ---- */}
                  <div>
                     <label className='flex items-center gap-2 text-sm font-medium text-slate-700 mb-2'>
@@ -86,15 +104,26 @@ const ApplyLeaveModal = ({open, onClose, onSuccess}) => {
                     <textarea name="reason" required rows={3} className="resize-none" placeholder="Briefly describe why you need this leave..." />
                  </div>
 
+                 {isAdmin && (
+                    <div>
+                        <label className='text-sm font-medium text-slate-700 mb-2 block'>Status</label>
+                        <select name="status" defaultValue="APPROVED">
+                            <option value="APPROVED">Approved</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                 )}
+
                  {/*------ buttons ------ */}
                  <div className="flex gap-3 pt-2">
                     <button onClick={onClose} type='button' className="btn-secondary flex-1">
                          Cancel
                     </button>
 
-                    <button disabled={loading} type='submit' className="btn-primary flex-1 flex items-center justify-center gap-2">
+                    <button disabled={loading || (isAdmin && !activeEmployees.length)} type='submit' className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-60">
                          {loading ? <Loader2 className='w-4 h-4 animate-spin'/> : <Send className="w-4 h-4"/>}
-                         {loading ? "Submitting..." : "Submit"}
+                         {loading ? "Submitting..." : isAdmin ? "Save Leave" : "Submit"}
                     </button>
                  </div>
             </form>

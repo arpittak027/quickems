@@ -11,6 +11,7 @@ import toast from "react-hot-toast"
 const Leave = () => {
   const {user} = useAuth()
   const [leaves, setLeaves] = useState([])
+  const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [isDeleted, setIsDeleted] = useState(false);
@@ -28,9 +29,23 @@ const Leave = () => {
    }
   },[])
 
+  const fetchEmployees = useCallback(async ()=>{
+    if(!isAdmin) return;
+    try {
+      const res = await api.get("/employees");
+      setEmployees(res.data || [])
+    } catch (error) {
+      toast.error(error?.response?.data?.error || error.message)
+    }
+  },[isAdmin])
+
   useEffect(()=>{
     fetchLeaves()
   },[fetchLeaves])
+
+  useEffect(()=>{
+    fetchEmployees()
+  },[fetchEmployees])
 
   if(loading) return <Loading />
 
@@ -61,9 +76,9 @@ const Leave = () => {
           <h1 className="page-title">Leave Management</h1>
           <p className="page-subtitle">{isAdmin ? "Manage leave applications" : "Your leave history and requests"}</p>
         </div>
-        {!isAdmin && !isDeleted && (
+        {(isAdmin || !isDeleted) && (
           <button onClick={()=> setShowModal(true)} className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
-            <PlusIcon className="w-4 h-4" /> Apply for Leave
+            <PlusIcon className="w-4 h-4" /> {isAdmin ? "Add Leave" : "Apply for Leave"}
           </button>
         )}
       </div>
@@ -85,7 +100,7 @@ const Leave = () => {
         </div>
 
         <LeaveHistory leaves={leaves} isAdmin={isAdmin} onUpdate={fetchLeaves}/>
-        <ApplyLeaveModal open={showModal} onClose={()=> setShowModal(false)} onSuccess={fetchLeaves}/>
+        <ApplyLeaveModal open={showModal} onClose={()=> setShowModal(false)} onSuccess={fetchLeaves} isAdmin={isAdmin} employees={employees}/>
     </div>
   )
 }
