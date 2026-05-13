@@ -151,6 +151,28 @@ export const saveLocalProfile = (user, data) => {
     return profiles[user.email];
 };
 
+const DELETED_EMPS_KEY = "quickems.deletedEmployees";
+const readDeletedEmps = () => safeParse(localStorage.getItem(DELETED_EMPS_KEY), []);
+const writeDeletedEmps = (ids) => localStorage.setItem(DELETED_EMPS_KEY, JSON.stringify(ids));
+
+export const deleteLocalEmployee = (id) => {
+    const profiles = readProfiles();
+    for (const key of Object.keys(profiles)) {
+        const p = profiles[key];
+        const pId = p.id || p._id || getEmployeeIdFromEmail(p.email);
+        if (pId === id || p.email?.toLowerCase() === String(id).toLowerCase()) {
+            delete profiles[key];
+        }
+    }
+    writeProfiles(profiles);
+
+    const deleted = readDeletedEmps();
+    if (!deleted.includes(id)) {
+        deleted.push(id);
+        writeDeletedEmps(deleted);
+    }
+};
+
 export const getLocalEmployees = () => {
     const profiles = readProfiles();
     return Object.values(profiles)
@@ -166,6 +188,7 @@ export const getLocalEmployees = () => {
 };
 
 export const mergeEmployeeDirectory = (remoteEmployees = []) => {
+    const deletedIds = readDeletedEmps();
     const normalizedRemote = remoteEmployees.map((employee) => ({
         ...employee,
         id: employee.id || employee._id,
@@ -176,7 +199,7 @@ export const mergeEmployeeDirectory = (remoteEmployees = []) => {
     return dedupeBy(
         [...normalizedRemote, ...localEmployees],
         (employee) => employee.email?.toLowerCase() || employee.id || employee._id
-    );
+    ).filter(e => !e.isDeleted && !deletedIds.includes(e.id) && !deletedIds.includes(e._id));
 };
 
 const dateAtTime = (date, time) => {

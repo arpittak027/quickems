@@ -2,16 +2,29 @@ import { PencilIcon, Trash2Icon } from 'lucide-react'
 import React from 'react'
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { deleteLocalEmployee, isLocalToken } from '../utils/localDemoData';
 
 const EmployeeCard = ({employee, onDelete, onEdit}) => {
 
     const handleDelete = async ()=>{
         if(!confirm("Are you sure you want to delete this employee?")) return;
+        const localOnlySession = isLocalToken(localStorage.getItem("token"));
         try {
-            await api.delete(`/employees/${employee.id}`)
-            onDelete()
+            if (employee.local || String(employee.id).startsWith("local-")) {
+                deleteLocalEmployee(employee.id || employee._id);
+            } else {
+                await api.delete(`/employees/${employee.id || employee._id}`);
+            }
+            toast.success("Employee deleted successfully");
+            onDelete();
         } catch (err) {
-            toast.error(err.response?.data?.error || err.message);
+            if (employee.local || localOnlySession) {
+                deleteLocalEmployee(employee.id || employee._id);
+                toast.success("Employee deleted successfully");
+                onDelete();
+            } else {
+                toast.error(err.response?.data?.error || err.message);
+            }
         }
     }
 
