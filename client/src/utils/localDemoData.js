@@ -421,3 +421,45 @@ export const getLocalPayslipById = (id, user) => {
 };
 
 export const isLocalRecordId = (id) => String(id || "").startsWith("local-");
+
+export const getLocalDashboardData = (user) => {
+    const isAdmin = user?.role === "ADMIN";
+    if (isAdmin) {
+        const mergedEmployees = mergeEmployeeDirectory([]);
+        const attendance = readAttendance();
+        const today = new Date().toDateString();
+        const todayAttendance = attendance.filter((r) => new Date(r.date).toDateString() === today).length;
+        const leaves = readLeaves();
+        const pendingLeaves = leaves.filter((l) => l.status === "PENDING").length;
+
+        return {
+            role: "ADMIN",
+            totalEmployees: mergedEmployees.filter((e) => !e.isDeleted).length || 1,
+            totalDepartments: 5,
+            todayAttendance,
+            pendingLeaves,
+        };
+    }
+
+    const empProfile = mergeLocalProfile(user, {});
+    const attendance = readAttendance();
+    const today = new Date();
+    const currentMonthAttendance = attendance.filter((r) => {
+        const d = new Date(r.date);
+        return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && (r.employee?.email === user?.email || r.employeeId === user?.userId);
+    }).length;
+
+    const leaves = readLeaves();
+    const pendingLeaves = leaves.filter((l) => l.status === "PENDING" && (l.employee?.email === user?.email || l.employeeId === user?.userId)).length;
+
+    const payslips = getLocalPayslipsForUser(user);
+    const latestPayslip = payslips[0] || null;
+
+    return {
+        role: "EMPLOYEE",
+        employee: empProfile,
+        currentMonthAttendance,
+        pendingLeaves,
+        latestPayslip,
+    };
+};
