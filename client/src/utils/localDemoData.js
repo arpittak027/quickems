@@ -365,9 +365,19 @@ export const updateLocalLeaveStatus = (id, status) => {
     writeLeaves(records);
 };
 
+const DELETED_LEAVES_KEY = "quickems.deletedLeaves";
+const readDeletedLeaves = () => safeParse(localStorage.getItem(DELETED_LEAVES_KEY), []);
+const writeDeletedLeaves = (ids) => localStorage.setItem(DELETED_LEAVES_KEY, JSON.stringify(ids));
+
 export const deleteLocalLeave = (id) => {
     const records = readLeaves().filter((leave) => (leave._id || leave.id) !== id);
     writeLeaves(records);
+
+    const deleted = readDeletedLeaves();
+    if (!deleted.includes(id)) {
+        deleted.push(id);
+        writeDeletedLeaves(deleted);
+    }
 };
 
 export const getLocalLeavesForUser = (user) => {
@@ -377,8 +387,11 @@ export const getLocalLeavesForUser = (user) => {
 };
 
 export const mergeLeaves = (remoteLeaves = [], user) => {
+    const deletedIds = readDeletedLeaves();
     const localLeaves = getLocalLeavesForUser(user);
-    return dedupeBy([...remoteLeaves, ...localLeaves], (leave) => leave._id || leave.id).sort(sortByLatest);
+    return dedupeBy([...remoteLeaves, ...localLeaves], (leave) => leave._id || leave.id)
+        .filter((leave) => !deletedIds.map(String).includes(String(leave.id)) && !deletedIds.map(String).includes(String(leave._id)))
+        .sort(sortByLatest);
 };
 
 export const saveLocalPayslip = ({ employee, month, year, basicSalary, allowances = 0, deductions = 0 }) => {
