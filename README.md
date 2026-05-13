@@ -15,7 +15,7 @@ Email: admin@example.com
 Password: admin123
 
 Employee:
-Email: employee@example.com
+Email: employee@arpittak.com
 Password: employee123
 
 # 📌 Project Overview

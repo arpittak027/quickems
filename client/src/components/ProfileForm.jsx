@@ -6,6 +6,7 @@ const ProfileForm = ({initialData, onSuccess}) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const canEdit = !initialData.readOnly && !initialData.isDeleted;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -61,17 +62,26 @@ const ProfileForm = ({initialData, onSuccess}) => {
             </div>
             <div>
                  <label className="block text-sm font-medium text-slate-700 mb-2">Bio</label>
-                 <textarea disabled={initialData.isDeleted} name="bio"
+                 <textarea disabled={!canEdit} name="bio"
                  defaultValue={initialData.bio || ""}
                  placeholder='Write a brief bio...'
-                 className={`resize-none ${initialData.isDeleted ? "bg-slate-50 text-slate-400 cursor-not-allowed" : ""}`} />
-                 <p className='text-xs text-slate-400 mt-1.5'>This will be displayed on your profile.</p>
+                 className={`resize-none ${!canEdit ? "bg-slate-50 text-slate-400 cursor-not-allowed" : ""}`} />
+                 <p className='text-xs text-slate-400 mt-1.5'>
+                    {initialData.readOnly ? "Demo account profiles are read-only." : "This will be displayed on your profile."}
+                 </p>
             </div>
             {initialData.isDeleted ? (
                 <div className='pt-2'>
                     <div className='p-4 bg-rose-50 border border-rose-200 rounded-xl text-center'>
                         <p className='text-rose-600 font-medium tracking-tight'>Account Deactivated</p>
                         <p className='text-sm text-rose-500 mt-0.5'>You can no longer update your profile.</p>
+                    </div>
+                </div>
+            ) : initialData.readOnly ? (
+                <div className='pt-2'>
+                    <div className='p-4 bg-slate-50 border border-slate-200 rounded-xl text-center'>
+                        <p className='text-slate-700 font-medium tracking-tight'>Read-only demo profile</p>
+                        <p className='text-sm text-slate-500 mt-0.5'>This shared account cannot be edited by visitors.</p>
                     </div>
                 </div>
             ) : (

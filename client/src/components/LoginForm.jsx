@@ -12,7 +12,7 @@ const LoginForm = ({role, title, subtitle}) => {
             password: "admin123",
         },
         employee: {
-            email: "employee@example.com",
+            email: "employee@arpittak.com",
             password: "employee123",
         },
     }

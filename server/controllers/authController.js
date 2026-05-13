@@ -2,6 +2,12 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt"
 import jwt from 'jsonwebtoken'
 
+const DEMO_ACCOUNT_EMAILS = new Set([
+    "admin@example.com",
+    "employee@example.com",
+    "employee@arpittak.com",
+]);
+
 // Login for employee and admin
 // POST /api/auth/login
 export const login = async (req, res) => {
@@ -64,6 +70,9 @@ export const changePassword = async (req, res) => {
         }
         const user = await User.findById(session.userId)
         if(!user) return res.status(404).json({ error: "User not found" });
+        if(DEMO_ACCOUNT_EMAILS.has(user.email)){
+            return res.status(403).json({ error: "Demo account password is locked" });
+        }
         const isValid = await bcrypt.compare(currentPassword, user.password);
         if(!isValid) return res.status(400).json({ error: "Current password is incorrect" });
         const hashed = await bcrypt.hash(newPassword, 10);

@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 
 const ADMIN_PASSWORD = "admin123";
 const README_ADMIN_EMAIL = "prakashratnesh2005@gmail.com";
-const EMPLOYEE_EMAIL = "employee@example.com";
+const EMPLOYEE_EMAIL = "employee@arpittak.com";
 const EMPLOYEE_PASSWORD = "employee123";
 
 async function registerAdmin(){
