@@ -3,6 +3,7 @@ import {Link, useLocation} from 'react-router-dom'
 import {CalendarIcon, ChevronRightIcon, DollarSignIcon, FileTextIcon, LayoutGridIcon, Loader2, LogOutIcon, MenuIcon, SettingsIcon, UserIcon, XIcon} from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 import api from '../api/axios'
+import { mergeLocalProfile } from '../utils/localDemoData'
 
 const Sidebar = () => {
     const { pathname } = useLocation()
@@ -15,9 +16,14 @@ const Sidebar = () => {
     useEffect(()=>{
         const fetchProfile = () => {
             api.get("/profile").then(({data})=> {
-                if(data.firstName) setUserName(`${data.firstName} ${data.lastName || ""}`.trim());
-                setProfilePhoto(data.profilePhoto || "");
-            }).catch(()=>{})
+                const profile = mergeLocalProfile(user, data);
+                if(profile.firstName) setUserName(`${profile.firstName} ${profile.lastName || ""}`.trim());
+                setProfilePhoto(profile.profilePhoto || "");
+            }).catch(()=>{
+                const profile = mergeLocalProfile(user, {});
+                if(profile.firstName) setUserName(`${profile.firstName} ${profile.lastName || ""}`.trim());
+                setProfilePhoto(profile.profilePhoto || "");
+            })
         }
 
         fetchProfile();

@@ -2,6 +2,7 @@ import { CalendarClock, Loader2, Save } from 'lucide-react'
 import { useState } from 'react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { saveLocalAttendance } from '../../utils/localDemoData'
 
 const toInputDate = (date = new Date()) => {
     const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -18,17 +19,31 @@ const AdminAttendanceForm = ({employees, onSuccess}) => {
         setLoading(true)
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData.entries())
+        const employee = activeEmployees.find((item)=> item.id === data.employeeId || item._id === data.employeeId)
         if(data.status === "ABSENT"){
             delete data.checkIn
             delete data.checkOut
         }
 
         try {
-            await api.post("/attendance", data)
+            if(!employee){
+                throw new Error("Employee not found")
+            }
+            if(employee.local || String(data.employeeId).startsWith("local-")){
+                saveLocalAttendance({ employee, ...data });
+            } else {
+                await api.post("/attendance", data)
+            }
             toast.success("Attendance saved")
             onSuccess?.()
         } catch (error) {
-            toast.error(error?.response?.data?.error || error?.message)
+            if(employee){
+                saveLocalAttendance({employee, ...data});
+                toast.success("Attendance saved")
+                onSuccess?.()
+            } else {
+                toast.error(error?.response?.data?.error || error?.message)
+            }
         }finally{
             setLoading(false)
         }

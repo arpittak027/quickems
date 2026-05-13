@@ -93,3 +93,20 @@ export const getPayslipById = async (req, res) => {
         return res.status(500).json({ error: "Failed" });
     }
 }
+
+export const deletePayslip = async (req, res) => {
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({ error: "Invalid payslip record" });
+        }
+
+        const payslip = await Payslip.findByIdAndDelete(req.params.id);
+        if(!payslip){
+            return res.status(404).json({ error: "Payslip not found" });
+        }
+
+        return res.json({ success: true });
+    } catch (error) {
+        return res.status(500).json({ error: "Failed to delete payslip" });
+    }
+}

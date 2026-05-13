@@ -2,6 +2,7 @@ import { Loader2, Plus, X } from 'lucide-react'
 import React, { useState } from 'react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { saveLocalPayslip } from '../../utils/localDemoData'
 
 const GeneratePayslipForm = ({employees, onSuccess}) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -20,14 +21,29 @@ const GeneratePayslipForm = ({employees, onSuccess}) => {
         setLoading(true)
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries())
+        const employee = employees.find((item)=> item.id === data.employeeId || item._id === data.employeeId)
         try {
-            await api.post('/payslips', data)
+            if(!employee){
+                throw new Error("Employee not found")
+            }
+            if(employee.local || String(data.employeeId).startsWith("local-")){
+                saveLocalPayslip({ employee, ...data })
+            } else {
+                await api.post('/payslips', data)
+            }
             setIsOpen(false)
             onSuccess()
         } catch (err) {
-            toast.error(err.response?.data?.error || err?.message);
+            if(employee){
+                saveLocalPayslip({ employee, ...data })
+                setIsOpen(false)
+                onSuccess()
+            } else {
+                toast.error(err.response?.data?.error || err?.message);
+            }
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
      }
 
   return (
@@ -45,7 +61,8 @@ const GeneratePayslipForm = ({employees, onSuccess}) => {
                 {/* select employee  */}
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Employee</label>
-                    <select name="employeeId" required>
+                    <select name="employeeId" required disabled={!employees.length}>
+                        <option value="">Select employee</option>
                         {employees.map((e)=>(
                             <option key={e.id} value={e.id}>
                                 {e.firstName} {e.lastName} ({e.position})
@@ -97,7 +114,7 @@ const GeneratePayslipForm = ({employees, onSuccess}) => {
                         Cancel
                     </button>
 
-                    <button disabled={loading}  type='submit' className='btn-primary flex items-center'>
+                    <button disabled={loading || !employees.length}  type='submit' className='btn-primary flex items-center'>
                         {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Generate
                     </button>

@@ -1,8 +1,11 @@
 import { Camera, Loader2, Save, User } from 'lucide-react';
 import { useState } from 'react'
 import api from '../api/axios';
+import { useAuth } from '../context/useAuth';
+import { mergeLocalProfile, saveLocalProfile } from '../utils/localDemoData';
 
 const ProfileForm = ({initialData, onSuccess}) => {
+    const {user} = useAuth();
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
@@ -37,12 +40,21 @@ const ProfileForm = ({initialData, onSuccess}) => {
         setMessage("")
         const formData = new FormData(e.currentTarget)
         try {
+            const data = Object.fromEntries(formData.entries());
             await api.post("/profile", formData)
+            saveLocalProfile(user, data);
             setMessage("Profile updated successfully")
             window.dispatchEvent(new Event("profile-updated"))
             onSuccess?.()
-        } catch (err) {
-            setError(err.response?.data?.error || err.message);
+        } catch {
+            const data = Object.fromEntries(formData.entries());
+            saveLocalProfile(user, {
+                ...mergeLocalProfile(user, initialData),
+                ...data,
+            });
+            setMessage("Profile updated successfully")
+            window.dispatchEvent(new Event("profile-updated"))
+            onSuccess?.()
         }finally{
             setLoading(false)
         }

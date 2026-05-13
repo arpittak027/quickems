@@ -6,6 +6,7 @@ import ApplyLeaveModal from "../components/leave/ApplyLeaveModal"
 import { useAuth } from "../context/useAuth"
 import api from "../api/axios"
 import toast from "react-hot-toast"
+import { deleteLocalLeave, isLocalToken, mergeEmployeeDirectory, mergeLeaves } from "../utils/localDemoData"
 
 
 const Leave = () => {
@@ -16,28 +17,59 @@ const Leave = () => {
   const [showModal, setShowModal] = useState(false)
   const [isDeleted, setIsDeleted] = useState(false);
   const isAdmin = user?.role === "ADMIN";
+  const localOnlySession = isLocalToken(localStorage.getItem("token"));
 
   const fetchLeaves = useCallback(async ()=>{
    try {
     const res = await api.get('/leave');
-    setLeaves(res.data.data || [])
-    if(res.data.employee?.isDeleted) setIsDeleted(true)
+    setLeaves(mergeLeaves(res.data.data || [], user))
+    setIsDeleted(!!res.data.employee?.isDeleted)
    } catch (error) {
-    toast.error(error?.response?.data?.error || error.message)
+    setLeaves(mergeLeaves([], user))
+    setIsDeleted(false)
+    if(!localOnlySession){
+      toast.error(error?.response?.data?.error || error.message)
+    }
    }finally{
     setLoading(false)
    }
-  },[])
+  },[localOnlySession, user])
 
   const fetchEmployees = useCallback(async ()=>{
     if(!isAdmin) return;
     try {
       const res = await api.get("/employees");
-      setEmployees(res.data || [])
+      setEmployees(mergeEmployeeDirectory(res.data || []))
     } catch (error) {
-      toast.error(error?.response?.data?.error || error.message)
+      setEmployees(mergeEmployeeDirectory([]))
+      if(!localOnlySession){
+        toast.error(error?.response?.data?.error || error.message)
+      }
     }
-  },[isAdmin])
+  },[isAdmin, localOnlySession])
+
+  const handleDelete = async (leave) => {
+    const id = leave._id || leave.id;
+    if(!id || !confirm("Delete this leave record?")) return;
+
+    try {
+      if(leave.local || String(id).startsWith("local-")){
+        deleteLocalLeave(id)
+      } else {
+        await api.delete(`/leave/${id}`)
+      }
+      toast.success("Leave deleted")
+      fetchLeaves()
+    } catch (error) {
+      if(leave.local || localOnlySession){
+        deleteLocalLeave(id)
+        toast.success("Leave deleted")
+        fetchLeaves()
+      } else {
+        toast.error(error?.response?.data?.error || error.message)
+      }
+    }
+  }
 
   useEffect(()=>{
     fetchLeaves()
@@ -99,7 +131,7 @@ const Leave = () => {
           ))}
         </div>
 
-        <LeaveHistory leaves={leaves} isAdmin={isAdmin} onUpdate={fetchLeaves}/>
+        <LeaveHistory leaves={leaves} isAdmin={isAdmin} onUpdate={fetchLeaves} onDelete={handleDelete}/>
         <ApplyLeaveModal open={showModal} onClose={()=> setShowModal(false)} onSuccess={fetchLeaves} isAdmin={isAdmin} employees={employees}/>
     </div>
   )

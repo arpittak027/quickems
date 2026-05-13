@@ -1,9 +1,9 @@
 import { format } from 'date-fns'
-import { Download } from 'lucide-react'
+import { Download, Trash2 } from 'lucide-react'
 import React from 'react'
 import { formatINR } from '../../utils/currency'
 
-const PayslipList = ({payslips, isAdmin}) => {
+const PayslipList = ({payslips, isAdmin, onDelete}) => {
   return (
     <div className='card overflow-hidden'>
         <div className="overflow-x-auto">
@@ -47,11 +47,22 @@ const PayslipList = ({payslips, isAdmin}) => {
                                     </td>
 
                                     <td className='text-center'>
-                                       <button
-                                       onClick={()=> window.open(`/print/payslips/${payslip._id || payslip.id}`)}
-                                       className='inline-flex items-center px-3 py-1.5 text-xs font-medium rounded text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors ring-1 ring-blue-600/10'>
-                                        <Download className="w-3 h-3 mr-1.5" /> View / Download
-                                       </button>
+                                       <div className='flex items-center justify-center gap-2'>
+                                            <button
+                                            onClick={()=> window.open(`/print/payslips/${payslip._id || payslip.id}`)}
+                                            className='inline-flex items-center px-3 py-1.5 text-xs font-medium rounded text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors ring-1 ring-blue-600/10'>
+                                                <Download className="w-3 h-3 mr-1.5" /> View / Download
+                                            </button>
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={()=> onDelete?.(payslip)}
+                                                    className='inline-flex items-center justify-center p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors'
+                                                    title="Delete payslip"
+                                                >
+                                                    <Trash2 className='w-4 h-4' />
+                                                </button>
+                                            )}
+                                       </div>
                                     </td>
 
                                    

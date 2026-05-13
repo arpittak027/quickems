@@ -2,9 +2,11 @@ import { CalendarDays, FileText, Loader2, Send, X } from 'lucide-react';
 import React, { useState } from 'react'
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/useAuth';
+import { isLocalToken, saveLocalLeave } from '../../utils/localDemoData';
 
 const ApplyLeaveModal = ({open, onClose, onSuccess, isAdmin = false, employees = []}) => {
-
+    const {user} = useAuth();
     const [loading, setLoading] = useState(false);
     const activeEmployees = employees.filter((employee)=> !employee.isDeleted && employee.employmentStatus !== "INACTIVE")
 
@@ -18,13 +20,29 @@ const ApplyLeaveModal = ({open, onClose, onSuccess, isAdmin = false, employees =
         setLoading(true)
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData.entries())
+        const localOnlySession = isLocalToken(localStorage.getItem("token"));
+        const employee = isAdmin
+            ? activeEmployees.find((item)=> item.id === data.employeeId || item._id === data.employeeId)
+            : user;
 
         try {
-            await api.post('/leave', data)
+            if((isAdmin && employee?.local) || (!isAdmin && localOnlySession)){
+                saveLocalLeave({ employee, ...data })
+            } else {
+                await api.post('/leave', data)
+            }
             onSuccess();
             onClose();
         } catch (err) {
-            toast.error(err.response?.data?.error || err?.message)
+            if(employee){
+                saveLocalLeave({ employee, ...data })
+                onSuccess();
+                onClose();
+            } else {
+                toast.error(err.response?.data?.error || err?.message)
+            }
+        } finally {
+            setLoading(false)
         }
     }
 

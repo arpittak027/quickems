@@ -4,6 +4,7 @@ import { Plus, Search, X } from "lucide-react"
 import EmployeeCard from "../components/EmployeeCard"
 import EmployeeForm from "../components/EmployeeForm"
 import api from "../api/axios"
+import { mergeEmployeeDirectory } from "../utils/localDemoData"
 
 
 
@@ -20,9 +21,10 @@ const Employees = () => {
     try {
       const url = selectedDept ? `/employees?department=${selectedDept}` : "/employees";
       const res = await api.get(url)
-      setEmployees(res.data)
+      setEmployees(mergeEmployeeDirectory(res.data || []))
     } catch (error) {
       console.error("Failed to fetch employees", error);
+      setEmployees(mergeEmployeeDirectory([]))
     }finally{
       setLoading(false)
     }
@@ -32,7 +34,11 @@ const Employees = () => {
     fetchEmployees();
   },[fetchEmployees])
 
-  const filtered = employees.filter((emp)=> `${emp.firstName} ${emp.lastName} ${emp.position}`.toLowerCase().includes(search.toLowerCase()))
+  const filtered = employees.filter((emp)=> {
+    const matchesSearch = `${emp.firstName} ${emp.lastName} ${emp.position} ${emp.email || ""}`.toLowerCase().includes(search.toLowerCase())
+    const matchesDepartment = !selectedDept || emp.department === selectedDept
+    return matchesSearch && matchesDepartment
+  })
 
 
   return (

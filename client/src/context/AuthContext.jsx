@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { AuthContext } from "./AuthContextBase";
+import { createLocalToken, createLocalUser, getUserFromLocalToken, mergeLocalProfile, saveLocalProfile } from "../utils/localDemoData";
 
 export function AuthProvider({children}){
     const [user, setUser] = useState(null)
@@ -12,6 +13,14 @@ export function AuthProvider({children}){
         if(!storedToken){
             setUser(null);
             setToken(null);
+            setLoading(false);
+            return;
+        }
+        const localUser = getUserFromLocalToken(storedToken);
+        if(localUser){
+            saveLocalProfile(localUser, mergeLocalProfile(localUser, {}));
+            setUser(localUser);
+            setToken(storedToken);
             setLoading(false);
             return;
         }
@@ -33,11 +42,22 @@ export function AuthProvider({children}){
     },[])
 
     const login = async (email, password, role_type) => {
-        const { data } = await api.post("/auth/login", {email, password, role_type})
-        localStorage.setItem("token", data.token)
-        setToken(data.token);
-        setUser(data.user);
-        return data.user;
+        try {
+            const { data } = await api.post("/auth/login", {email, password, role_type})
+            localStorage.setItem("token", data.token)
+            setToken(data.token);
+            setUser(data.user);
+            return data.user;
+        } catch (error) {
+            if(role_type !== "employee") throw error;
+            const localUser = createLocalUser(email);
+            const localToken = createLocalToken(localUser);
+            saveLocalProfile(localUser, mergeLocalProfile(localUser, {}));
+            localStorage.setItem("token", localToken);
+            setToken(localToken);
+            setUser(localUser);
+            return localUser;
+        }
     }
 
     const logout = async ()=>{

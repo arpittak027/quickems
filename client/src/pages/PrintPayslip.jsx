@@ -5,17 +5,31 @@ import {format} from 'date-fns'
 import api from '../api/axios';
 import { formatINR } from '../utils/currency';
 import { DownloadIcon, Loader2Icon, PrinterIcon } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
+import { getLocalPayslipById, isLocalRecordId } from '../utils/localDemoData';
 
 const PrintPayslip = () => {
   const {id} = useParams();
+  const {user} = useAuth();
   const [payslip, setPayslip] = useState(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const payslipRef = useRef(null)
 
   useEffect(()=>{
-    api.get(`/payslips/${id}`).then((res)=> setPayslip(res.data)).catch(console.error).finally(()=> setLoading(false))
-  },[id])
+    if(isLocalRecordId(id)){
+      setPayslip(getLocalPayslipById(id, user))
+      setLoading(false)
+      return;
+    }
+
+    api.get(`/payslips/${id}`)
+      .then((res)=> setPayslip(res.data))
+      .catch(()=>{
+        setPayslip(getLocalPayslipById(id, user))
+      })
+      .finally(()=> setLoading(false))
+  },[id, user])
 
   if(loading) return <Loading />
   if(!payslip) return <p className='text-center py-12 text-slate-400'>Payslip not found</p>

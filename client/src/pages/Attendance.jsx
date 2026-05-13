@@ -7,6 +7,7 @@ import AdminAttendanceForm from "../components/attendance/AdminAttendanceForm"
 import api from "../api/axios"
 import {toast} from 'react-hot-toast'
 import { useAuth } from "../context/useAuth"
+import { deleteLocalAttendance, isLocalToken, mergeAttendance, mergeEmployeeDirectory } from "../utils/localDemoData"
 
 
 const Attendance = () => {
@@ -16,29 +17,60 @@ const Attendance = () => {
   const [loading, setLoading] = useState(true)
   const [isDeleted, setIsDeleted] = useState(false)
   const isAdmin = user?.role === "ADMIN"
+  const localOnlySession = isLocalToken(localStorage.getItem("token"))
 
   const fetchData = useCallback(async ()=>{
     try {
       const res = await api.get("/attendance");
       const json = res.data;
-      setHistory(json.data || [])
-      if(json.employee?.isDeleted) setIsDeleted(true)
+      setHistory(mergeAttendance(json.data || [], user))
+      setIsDeleted(!!json.employee?.isDeleted)
     } catch (error) {
-      toast.error(error?.response?.data?.error || error?.message)
+      setHistory(mergeAttendance([], user))
+      setIsDeleted(false)
+      if(!localOnlySession){
+        toast.error(error?.response?.data?.error || error?.message)
+      }
     }finally{
       setLoading(false)
     }
-  },[])
+  },[localOnlySession, user])
 
   const fetchEmployees = useCallback(async ()=>{
     if(!isAdmin) return;
     try {
       const res = await api.get("/employees");
-      setEmployees(res.data || [])
+      setEmployees(mergeEmployeeDirectory(res.data || []))
     } catch (error) {
-      toast.error(error?.response?.data?.error || error?.message)
+      setEmployees(mergeEmployeeDirectory([]))
+      if(!localOnlySession){
+        toast.error(error?.response?.data?.error || error?.message)
+      }
     }
-  },[isAdmin])
+  },[isAdmin, localOnlySession])
+
+  const handleDelete = async (record) => {
+    const id = record._id || record.id
+    if(!id || !confirm("Delete this attendance record?")) return;
+
+    try {
+      if(record.local || String(id).startsWith("local-")){
+        deleteLocalAttendance(id)
+      } else {
+        await api.delete(`/attendance/${id}`)
+      }
+      toast.success("Attendance deleted")
+      fetchData()
+    } catch (error) {
+      if(record.local || localOnlySession){
+        deleteLocalAttendance(id)
+        toast.success("Attendance deleted")
+        fetchData()
+      } else {
+        toast.error(error?.response?.data?.error || error?.message)
+      }
+    }
+  }
 
   useEffect(()=>{
     fetchData()
@@ -74,7 +106,7 @@ const Attendance = () => {
       )}
 
       <AttendanceStats history={history}/>
-      <AttendanceHistory history={history} isAdmin={isAdmin}/>
+      <AttendanceHistory history={history} isAdmin={isAdmin} onDelete={handleDelete}/>
     </div>
   )
 }

@@ -2,19 +2,36 @@ import { Loader2Icon, LogInIcon, LogOutIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../context/useAuth'
+import { clockLocalAttendance, isLocalToken } from '../../utils/localDemoData'
 
 const CheckInButton = ({todayRecord, onAction}) => {
     const [loading, setLoading] = useState(false)
+    const {user} = useAuth()
+    const isCheckedIn = !!todayRecord?.checkIn;
 
     const handleAttendance = async () => {
         setLoading(true)
+        const token = localStorage.getItem("token")
         try {
+            if(isLocalToken(token)){
+                clockLocalAttendance(user, todayRecord)
+                onAction()
+                return;
+            }
             await api.post("/attendance")
             onAction()
         } catch (error) {
-            toast.error(error?.response?.data?.error || error?.message);
+            if(isLocalToken(token) || error?.response?.status === 401){
+                clockLocalAttendance(user, todayRecord)
+                toast.success(isCheckedIn ? "Clocked out" : "Clocked in")
+                onAction()
+            } else {
+                toast.error(error?.response?.data?.error || error?.message);
+            }
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     if(todayRecord?.checkOut){
@@ -26,7 +43,6 @@ const CheckInButton = ({todayRecord, onAction}) => {
         )
     }
 
-    const isCheckedIn = !!todayRecord?.checkIn;
   return (
     <div className='flex items-center justify-center min-h-24 p-6 bg-slate-50 rounded-2xl border border-slate-200'>
         <button onClick={handleAttendance} disabled={loading} className={`w-full max-w-xs flex justify-between items-center gap-8 p-4 rounded-xl bg-linear-to-br text-white disabled:opacity-60 ${isCheckedIn ? "from-slate-700 to-slate-900" : "from-indigo-600 to-indigo-700"}`}>

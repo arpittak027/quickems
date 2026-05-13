@@ -7,6 +7,7 @@ import api from "../api/axios";
 import toast from "react-hot-toast";
 import { Banknote, FileCheck2, Users } from "lucide-react";
 import { formatINR } from "../utils/currency";
+import { deleteLocalPayslip, isLocalToken, mergeEmployeeDirectory, mergePayslips } from "../utils/localDemoData";
 
 
 const Payslips = () => {
@@ -16,25 +17,55 @@ const Payslips = () => {
 
   const {user} = useAuth()
   const isAdmin = user?.role === "ADMIN";
+  const localOnlySession = isLocalToken(localStorage.getItem("token"));
 
   const fetchPayslips = useCallback(async ()=>{
     try {
       const res = await api.get('/payslips')
-      setPayslips(res.data.data || [])
+      setPayslips(mergePayslips(res.data.data || [], user))
     } catch (error) {
-      toast.error(error?.response?.data?.error || error?.message);
+      setPayslips(mergePayslips([], user))
+      if(!localOnlySession){
+        toast.error(error?.response?.data?.error || error?.message);
+      }
     }finally{
       setLoading(false)
     }
-  },[])
+  },[localOnlySession, user])
 
   useEffect(()=>{
     fetchPayslips()
   },[fetchPayslips])
 
   useEffect(()=>{
-    if(isAdmin) api.get("/employees").then((res)=> setEmployees(res.data.filter((e)=> !e.isDeleted && e.employmentStatus !== "INACTIVE"))).catch(()=>{})
+    if(!isAdmin) return;
+    api.get("/employees")
+      .then((res)=> setEmployees(mergeEmployeeDirectory(res.data || []).filter((e)=> !e.isDeleted && e.employmentStatus !== "INACTIVE")))
+      .catch(()=> setEmployees(mergeEmployeeDirectory([]).filter((e)=> !e.isDeleted && e.employmentStatus !== "INACTIVE")))
   },[isAdmin])
+
+  const handleDelete = async (payslip) => {
+    const id = payslip._id || payslip.id;
+    if(!id || !confirm("Delete this payslip?")) return;
+
+    try {
+      if(payslip.local || String(id).startsWith("local-")){
+        deleteLocalPayslip(id)
+      } else {
+        await api.delete(`/payslips/${id}`)
+      }
+      toast.success("Payslip deleted")
+      fetchPayslips()
+    } catch (error) {
+      if(payslip.local || localOnlySession){
+        deleteLocalPayslip(id)
+        toast.success("Payslip deleted")
+        fetchPayslips()
+      } else {
+        toast.error(error?.response?.data?.error || error?.message)
+      }
+    }
+  }
 
   if(loading) return <Loading />
 
@@ -78,7 +109,7 @@ const Payslips = () => {
         ))}
       </div>
 
-      <PayslipList payslips={payslips} isAdmin={isAdmin}/>
+      <PayslipList payslips={payslips} isAdmin={isAdmin} onDelete={handleDelete}/>
     </div>
   )
 }

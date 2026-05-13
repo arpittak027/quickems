@@ -1,19 +1,29 @@
-import { Check, Loader2, X } from 'lucide-react'
+import { Check, Loader2, Trash2, X } from 'lucide-react'
 import React, { useState } from 'react'
 import {format} from 'date-fns'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { isLocalRecordId, updateLocalLeaveStatus } from '../../utils/localDemoData'
 
-const LeaveHistory = ({leaves, isAdmin, onUpdate}) => {
+const LeaveHistory = ({leaves, isAdmin, onUpdate, onDelete}) => {
     const [processing, setProcessing] = useState(null)
 
     const handleStatusUpdate = async (id, status) => {
         setProcessing(id)
         try {
-            await api.patch(`/leave/${id}`, {status})
+            if(isLocalRecordId(id)){
+                updateLocalLeaveStatus(id, status)
+            } else {
+                await api.patch(`/leave/${id}`, {status})
+            }
             onUpdate();
         } catch (error) {
-            toast.error(error?.response?.data?.error || error?.message)
+            if(isLocalRecordId(id)){
+                updateLocalLeaveStatus(id, status)
+                onUpdate()
+            } else {
+                toast.error(error?.response?.data?.error || error?.message)
+            }
         }finally{
             setProcessing(null)
         }
@@ -71,24 +81,32 @@ const LeaveHistory = ({leaves, isAdmin, onUpdate}) => {
                                         </td>
                         {isAdmin && (
                             <td>
-                                {leave.status === "PENDING" && (
-                                    <div className='flex justify-center gap-2'>
-                                        <button
-                                         disabled={!!processing}
-                                        onClick={()=> handleStatusUpdate(leave._id || leave.id, "APPROVED")}
-                                        className='p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors'>
-                                            {processing === (leave._id || leave.id) ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4"/>}
-                                        </button>
+                                <div className='flex justify-center gap-2'>
+                                    {leave.status === "PENDING" && (
+                                        <>
+                                            <button
+                                             disabled={!!processing}
+                                            onClick={()=> handleStatusUpdate(leave._id || leave.id, "APPROVED")}
+                                            className='p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors'>
+                                                {processing === (leave._id || leave.id) ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4"/>}
+                                            </button>
 
-                                        <button
-                                         onClick={()=> handleStatusUpdate(leave._id || leave.id, "REJECTED")}
-                                         disabled={!!processing}
-                                        className='p-1.5 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors'>
-                                            {processing === (leave._id || leave.id) ? <Loader2 className="w-4 h-4 animate-spin"/> : <X className="w-4 h-4"/>}
-                                        </button>
-                                    </div>
-                                )}
-                                
+                                            <button
+                                             onClick={()=> handleStatusUpdate(leave._id || leave.id, "REJECTED")}
+                                             disabled={!!processing}
+                                            className='p-1.5 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors'>
+                                                {processing === (leave._id || leave.id) ? <Loader2 className="w-4 h-4 animate-spin"/> : <X className="w-4 h-4"/>}
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        onClick={()=> onDelete?.(leave)}
+                                        className='p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors'
+                                        title="Delete leave"
+                                    >
+                                        <Trash2 className='w-4 h-4' />
+                                    </button>
+                                </div>
                             </td>
                         )}
                                         

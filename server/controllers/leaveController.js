@@ -119,3 +119,20 @@ export const updateLeaveStatus = async (req, res) => {
         return res.status(500).json({ error: "Failed" });
     }
 }
+
+export const deleteLeave = async (req, res) => {
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({ error: "Invalid leave record" });
+        }
+
+        const leave = await LeaveApplication.findByIdAndDelete(req.params.id);
+        if(!leave){
+            return res.status(404).json({ error: "Leave record not found" });
+        }
+
+        return res.json({ success: true });
+    } catch (error) {
+        return res.status(500).json({ error: "Failed to delete leave" });
+    }
+}

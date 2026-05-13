@@ -1,8 +1,9 @@
 import React from 'react'
 import { getDayTypeDisplay, getWorkingHoursDisplay } from '../../assets/assets'
 import {format} from 'date-fns'
+import { Trash2 } from 'lucide-react'
 
-const AttendanceHistory = ({history, isAdmin}) => {
+const AttendanceHistory = ({history, isAdmin, onDelete}) => {
   return (
     <div className='card overflow-hidden'>
         <div className="px-6 py-4 border-b border-slate-100">
@@ -19,12 +20,13 @@ const AttendanceHistory = ({history, isAdmin}) => {
                         <th className="px-6 py-4">Working Hours</th>
                         <th className="px-6 py-4">Day Type</th>
                         <th className="px-6 py-4">Status</th>
+                        {isAdmin && <th className="px-6 py-4 text-center">Actions</th>}
                     </tr>
                 </thead>
                 <tbody>
                     {history.length === 0 ? (
                         <tr>
-                            <td colSpan={isAdmin ? 7 : 6} className="text-center py-12 text-slate-400">
+                            <td colSpan={isAdmin ? 8 : 6} className="text-center py-12 text-slate-400">
                                 No records found
                             </td>
                         </tr>
@@ -68,6 +70,17 @@ const AttendanceHistory = ({history, isAdmin}) => {
                                             {record.status}
                                         </span>
                                     </td>
+                                    {isAdmin && (
+                                        <td className='px-6 py-4 text-center'>
+                                            <button
+                                                onClick={()=> onDelete?.(record)}
+                                                className='inline-flex items-center justify-center p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors'
+                                                title="Delete attendance"
+                                            >
+                                                <Trash2 className='w-4 h-4' />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             )
                         })

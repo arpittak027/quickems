@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Loading from "../components/Loading"
 import { Lock } from "lucide-react"
 import ProfileForm from "../components/ProfileForm"
@@ -6,6 +6,7 @@ import ChangePasswordModal from "../components/ChangePasswordModal"
 import { useAuth } from "../context/useAuth"
 import api from "../api/axios"
 import toast from "react-hot-toast"
+import { mergeLocalProfile } from "../utils/localDemoData"
 
 
 const Settings = () => {
@@ -15,21 +16,25 @@ const Settings = () => {
   const [loading, setLoading] = useState(true)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
    try {
     const res = await api.get("/profile")
-    const profile = res.data;
+    const profile = mergeLocalProfile(user, res.data);
     if(profile) setProfile(profile)
    } catch (err) {
-    toast.error(err?.response?.data?.error || err?.message)
+    const profile = mergeLocalProfile(user, {});
+    if(profile) setProfile(profile)
+    if(user?.role === "ADMIN"){
+      toast.error(err?.response?.data?.error || err?.message)
+    }
    }finally{
     setLoading(false)
    }
-  }
+  },[user])
 
   useEffect(()=>{
     fetchProfile()
-  },[user])
+  },[fetchProfile])
 
   if(loading) return <Loading />
 
