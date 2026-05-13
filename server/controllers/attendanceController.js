@@ -84,7 +84,7 @@ async function markEmployeeAttendance(req, res){
             workingHours,
             dayType,
         },
-        {new: true, upsert: true, setDefaultsOnInsert: true}
+        {returnDocument: "after", upsert: true, setDefaultsOnInsert: true}
     );
 
     return res.json({ success: true, type: "ADMIN_MARK", data: attendance });

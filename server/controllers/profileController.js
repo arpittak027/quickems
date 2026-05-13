@@ -1,10 +1,12 @@
 import Employee from "../models/Employee.js";
+import User from "../models/User.js";
 
-const DEMO_ACCOUNT_EMAILS = new Set([
-    "admin@example.com",
-    "employee@example.com",
-    "employee@arpittak.com",
-]);
+function getProfilePhoto(value){
+    const photo = String(value || "");
+    if(!photo) return "";
+    if(photo.length > 900000) return null;
+    return photo.startsWith("data:image/") ? photo : null;
+}
 
 // Get profile
 // GET /api/profile
@@ -12,14 +14,16 @@ export const getProfile = async (req, res) => {
     try {
         const session = req.session;
         if(session.role === "ADMIN"){
+            const user = await User.findById(session.userId).lean();
             return res.json({
-                firstName: "Demo",
-                lastName: "Admin",
+                firstName: user?.displayName || "Admin",
+                lastName: "",
                 email: session.email,
                 position: "Administrator",
-                bio: "Demo admin profile is read-only",
+                bio: user?.bio || "",
+                profilePhoto: user?.profilePhoto || "",
                 isDeleted: false,
-                readOnly: true,
+                readOnly: false,
             })
         }
 
@@ -33,14 +37,15 @@ export const getProfile = async (req, res) => {
                 email: session.email,
                 position: "Administrator",
                 bio: "",
+                profilePhoto: "",
                 isDeleted: false,
-                readOnly: true,
+                readOnly: false,
             })
         }
         const profile = employee.toObject();
         return res.json({
             ...profile,
-            readOnly: DEMO_ACCOUNT_EMAILS.has(session.email),
+            readOnly: false,
         })
     } catch (error) {
         return res.status(500).json({ error: "Failed to fetch profile" });
@@ -52,18 +57,29 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const session = req.session;
-        if(session.role === "ADMIN" || DEMO_ACCOUNT_EMAILS.has(session.email)){
-            return res.status(403).json({ error: "Demo profile is read-only" });
+        const profilePhoto = getProfilePhoto(req.body.profilePhoto);
+        if(req.body.profilePhoto && profilePhoto === null){
+            return res.status(400).json({ error: "Please upload a smaller image file" });
         }
+
+        if(session.role === "ADMIN"){
+            const update = {
+                displayName: "Admin",
+                bio: req.body.bio || "",
+            };
+            if(req.body.profilePhoto !== undefined) update.profilePhoto = profilePhoto;
+            await User.findByIdAndUpdate(session.userId, update);
+            return res.json({ success: true });
+        }
+
         const employee = await Employee.findOne({userId: session.userId})
-        if(!employee && session.role === "ADMIN") return res.json({ success: true });
         if(!employee) return res.status(404).json({ error: "Employee not found" });
         if (employee.isDeleted){
             return res.status(403).json({error: "Your account is deactivated. You cannot update your profile.",})
         }
-        await Employee.findByIdAndUpdate(employee._id, {
-            bio: req.body.bio
-        })
+        const update = {bio: req.body.bio || ""};
+        if(req.body.profilePhoto !== undefined) update.profilePhoto = profilePhoto;
+        await Employee.findByIdAndUpdate(employee._id, update)
         return res.json({ success: true });
     } catch (error) {
         return res.status(500).json({ error: "Failed to update profile" });

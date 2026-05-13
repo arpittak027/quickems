@@ -7,15 +7,23 @@ import api from '../api/axios'
 const Sidebar = () => {
     const { pathname } = useLocation()
     const [userName, setUserName] = useState('')
+    const [profilePhoto, setProfilePhoto] = useState('')
     const [mobileOpen, setMobileOpen] = useState(false)
 
     const {user, loading, logout} = useAuth()
 
     useEffect(()=>{
-        api.get("/profile").then(({data})=> {
-            if(data.firstName) setUserName(`${data.firstName} ${data.lastName || ""}`.trim());
-        })
-    },[])
+        const fetchProfile = () => {
+            api.get("/profile").then(({data})=> {
+                if(data.firstName) setUserName(`${data.firstName} ${data.lastName || ""}`.trim());
+                setProfilePhoto(data.profilePhoto || "");
+            }).catch(()=>{})
+        }
+
+        fetchProfile();
+        window.addEventListener("profile-updated", fetchProfile);
+        return () => window.removeEventListener("profile-updated", fetchProfile);
+    },[user])
 
     const role = user?.role;
     const navItems = [
@@ -55,10 +63,14 @@ const Sidebar = () => {
             {userName && (
                 <div className='mx-3 mt-4 mb-1 p-3 rounded-lg bg-white/3 border border-white/4'>
                     <div className='flex items-center gap-3'>
-                        <div className='w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center ring-1 ring-white/10 shrink-0'>
-                            <span className='text-slate-400 text-xs font-semibold'>
-                                {userName.charAt(0).toUpperCase()}
-                            </span>
+                        <div className='w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center ring-1 ring-white/10 shrink-0 overflow-hidden'>
+                            {profilePhoto ? (
+                                <img src={profilePhoto} alt={userName} className='w-full h-full object-cover' />
+                            ) : (
+                                <span className='text-slate-400 text-xs font-semibold'>
+                                    {userName.charAt(0).toUpperCase()}
+                                </span>
+                            )}
                         </div>
                         <div className='min-w-0'>
                             <p className='text-[13px] font-medium text-slate-200 truncate'>{userName}</p>

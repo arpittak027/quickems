@@ -33,8 +33,7 @@ const Settings = () => {
 
   if(loading) return <Loading />
 
-  const isDemoAccount = profile?.readOnly || ["admin@example.com", "employee@example.com", "employee@arpittak.com"].includes(user?.email);
-  const canChangePassword = !isDemoAccount;
+  const canChangePassword = user?.role !== "ADMIN";
 
   return (
     <div className="animate-fade-in">
@@ -43,7 +42,7 @@ const Settings = () => {
         <p className="page-subtitle">Manage your account and preferences</p>
       </div>
 
-      {profile && <ProfileForm initialData={{...profile, readOnly: isDemoAccount}} onSuccess={fetchProfile}/>}
+      {profile && <ProfileForm initialData={profile} onSuccess={fetchProfile}/>}
 
        {/* Change Password trigger */}
        <div className="card max-w-md p-6 flex items-center justify-between">
@@ -53,7 +52,7 @@ const Settings = () => {
             </div>
             <div>
               <p className="font-medium text-slate-900">Password</p>
-              <p className="text-sm text-slate-500">{canChangePassword ? "Update your account password" : "Demo account password is locked"}</p>
+              <p className="text-sm text-slate-500">{canChangePassword ? "Update your account password" : "Admin password is fixed for this portal"}</p>
             </div>
           </div>
           <button disabled={!canChangePassword} onClick={()=> setShowPasswordModal(true)} className="btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed">

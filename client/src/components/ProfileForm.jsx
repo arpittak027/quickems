@@ -1,4 +1,4 @@
-import { Loader2, Save, User } from 'lucide-react';
+import { Camera, Loader2, Save, User } from 'lucide-react';
 import { useState } from 'react'
 import api from '../api/axios';
 
@@ -6,7 +6,29 @@ const ProfileForm = ({initialData, onSuccess}) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const canEdit = !initialData.readOnly && !initialData.isDeleted;
+    const [profilePhoto, setProfilePhoto] = useState(initialData.profilePhoto || "");
+    const canEdit = !initialData.isDeleted;
+    const displayName = `${initialData.firstName || ""} ${initialData.lastName || ""}`.trim();
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files?.[0];
+        if(!file) return;
+        if(!file.type.startsWith("image/")){
+            setError("Please choose an image file");
+            return;
+        }
+        if(file.size > 650 * 1024){
+            setError("Please choose an image smaller than 650 KB");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            setError("");
+            setProfilePhoto(reader.result || "");
+        };
+        reader.readAsDataURL(file);
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,6 +39,7 @@ const ProfileForm = ({initialData, onSuccess}) => {
         try {
             await api.post("/profile", formData)
             setMessage("Profile updated successfully")
+            window.dispatchEvent(new Event("profile-updated"))
             onSuccess?.()
         } catch (err) {
             setError(err.response?.data?.error || err.message);
@@ -46,10 +69,34 @@ const ProfileForm = ({initialData, onSuccess}) => {
         )}
 
         <div className='space-y-5'>
+            <div className='flex flex-col sm:flex-row sm:items-center gap-4 pb-1'>
+                <div className='w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0'>
+                    {profilePhoto ? (
+                        <img src={profilePhoto} alt={displayName || "Profile"} className='w-full h-full object-cover' />
+                    ) : (
+                        <span className='text-2xl font-semibold text-slate-400'>{(displayName || initialData.email || "U").charAt(0).toUpperCase()}</span>
+                    )}
+                </div>
+                <div className='flex-1'>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Profile Photo</label>
+                    <div className='flex flex-col sm:flex-row gap-2'>
+                        <label className={`btn-secondary inline-flex items-center justify-center gap-2 cursor-pointer ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}>
+                            <Camera className='w-4 h-4' />
+                            Upload Photo
+                            <input type="file" accept="image/*" className='hidden' disabled={!canEdit} onChange={handlePhotoChange} />
+                        </label>
+                        {profilePhoto && canEdit && (
+                            <button type='button' className='btn-secondary' onClick={()=> setProfilePhoto("")}>Remove</button>
+                        )}
+                    </div>
+                    <input type="hidden" name="profilePhoto" value={profilePhoto} />
+                    <p className='text-xs text-slate-400 mt-1.5'>Use a square photo under 650 KB.</p>
+                </div>
+            </div>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Name</label>
-                    <input disabled value={`${initialData.firstName || ""} ${initialData.lastName || ""}`.trim()} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
+                    <input disabled value={displayName} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
@@ -67,17 +114,10 @@ const ProfileForm = ({initialData, onSuccess}) => {
                  placeholder='Write a brief bio...'
                  className={`resize-none ${!canEdit ? "bg-slate-50 text-slate-400 cursor-not-allowed" : ""}`} />
                  <p className='text-xs text-slate-400 mt-1.5'>
-                    {initialData.readOnly ? "Demo account profiles are read-only." : "This will be displayed on your profile."}
+                    This will be displayed on your profile.
                  </p>
             </div>
-            {initialData.readOnly ? (
-                <div className='pt-2'>
-                    <div className='p-4 bg-slate-50 border border-slate-200 rounded-xl text-center'>
-                        <p className='text-slate-700 font-medium tracking-tight'>Read-only demo profile</p>
-                        <p className='text-sm text-slate-500 mt-0.5'>This shared account cannot be edited by visitors.</p>
-                    </div>
-                </div>
-            ) : initialData.isDeleted ? (
+            {initialData.isDeleted ? (
                 <div className='pt-2'>
                     <div className='p-4 bg-rose-50 border border-rose-200 rounded-xl text-center'>
                         <p className='text-rose-600 font-medium tracking-tight'>Account Deactivated</p>

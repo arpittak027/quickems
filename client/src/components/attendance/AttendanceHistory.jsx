@@ -38,7 +38,9 @@ const AttendanceHistory = ({history, isAdmin}) => {
                                             <div className='font-medium'>
                                                 {record.employee ? `${record.employee.firstName} ${record.employee.lastName}` : "Unknown Employee"}
                                             </div>
-                                            <div className='text-xs text-slate-400'>{record.employee?.department || record.employee?.email}</div>
+                                            <div className='text-xs text-slate-400'>
+                                                {[record.employee?.email, record.employee?.department].filter(Boolean).join(" - ")}
+                                            </div>
                                         </td>
                                     )}
                                     <td className='px-6 py-4 font-medium text-slate-900'>
