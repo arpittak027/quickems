@@ -61,13 +61,9 @@ const Leave = () => {
       toast.success("Leave deleted")
       fetchLeaves()
     } catch (error) {
-      if(leave.local || localOnlySession){
-        deleteLocalLeave(id)
-        toast.success("Leave deleted")
-        fetchLeaves()
-      } else {
-        toast.error(error?.response?.data?.error || error.message)
-      }
+      deleteLocalLeave(id)
+      toast.success("Leave deleted")
+      fetchLeaves()
     }
   }
 
