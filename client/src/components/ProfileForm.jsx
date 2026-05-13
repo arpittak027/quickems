@@ -10,7 +10,7 @@ const ProfileForm = ({initialData, onSuccess}) => {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [profilePhoto, setProfilePhoto] = useState(initialData.profilePhoto || "");
-    const canEdit = !initialData.isDeleted;
+    const canEdit = true;
     const displayName = `${initialData.firstName || ""} ${initialData.lastName || ""}`.trim();
 
     const handlePhotoChange = (e) => {
@@ -107,16 +107,20 @@ const ProfileForm = ({initialData, onSuccess}) => {
             </div>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Name</label>
-                    <input disabled value={displayName} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+                    <input disabled={!canEdit} name="firstName" defaultValue={initialData.firstName || ""} className={!canEdit ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''}/>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+                    <input disabled={!canEdit} name="lastName" defaultValue={initialData.lastName || ""} className={!canEdit ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''}/>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                    <input disabled value={initialData.email || ""} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
+                    <input disabled={!canEdit} name="email" defaultValue={initialData.email || ""} className={!canEdit ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''}/>
                 </div>
                 <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Position</label>
-                    <input disabled value={initialData.position || ""} className='bg-slate-50 text-slate-400 cursor-not-allowed'/>
+                    <input disabled={!canEdit} name="position" defaultValue={initialData.position || ""} className={!canEdit ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''}/>
                 </div>
             </div>
             <div>
@@ -129,7 +133,7 @@ const ProfileForm = ({initialData, onSuccess}) => {
                     This will be displayed on your profile.
                  </p>
             </div>
-            {initialData.isDeleted ? (
+            {(initialData.isDeleted && user?.role !== "ADMIN") ? (
                 <div className='pt-2'>
                     <div className='p-4 bg-rose-50 border border-rose-200 rounded-xl text-center'>
                         <p className='text-rose-600 font-medium tracking-tight'>Account Deactivated</p>

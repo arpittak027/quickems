@@ -69,7 +69,7 @@ const LoginForm = ({role, title, subtitle}) => {
                     <label className='block text-sm font-medium text-slate-700 mb-2'>Email address</label>
                     <input type="email" value={email} onChange={(e)=> setEmail(e.target.value)} required placeholder='john@example.com' autoComplete='email'/>
                     {role === "employee" && (
-                        <p className='text-xs text-slate-400 mt-1.5'>Employee portal accepts any employee email for this EMS demo.</p>
+                        <p className='text-xs text-slate-400 mt-1.5'>Employee portal accepts any registered employee email.</p>
                     )}
                 </div>
                 <div>

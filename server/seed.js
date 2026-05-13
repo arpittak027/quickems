@@ -50,7 +50,7 @@ async function registerAdmin(){
             userId: employeeUser._id,
         }, {
             userId: employeeUser._id,
-            firstName: "Demo",
+            firstName: "Standard",
             lastName: "Employee",
             email: EMPLOYEE_EMAIL,
             phone: "9999999999",
@@ -62,14 +62,14 @@ async function registerAdmin(){
             employmentStatus: "ACTIVE",
             joinDate: new Date("2026-01-01"),
             isDeleted: false,
-            bio: "Local demo employee account",
+            bio: "Standard employee account",
         }, {
             returnDocument: "after",
             upsert: true,
             setDefaultsOnInsert: true,
         })
 
-        console.log("Demo users are ready");
+        console.log("Standard users are ready");
         console.log("\nAdmin emails:", adminUsers.map((user) => user.email).join(", "));
         console.log("Admin password:", ADMIN_PASSWORD);
         console.log("\nEmployee email:", EMPLOYEE_EMAIL);

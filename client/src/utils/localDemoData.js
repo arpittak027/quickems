@@ -126,6 +126,7 @@ export const mergeLocalProfile = (user, remoteProfile = {}) => {
         base.lastName = "";
         base.position = "Administrator";
         base.department = "Management";
+        base.isDeleted = false;
     } else {
         base.id = base.id || base._id || getEmployeeIdFromEmail(base.email);
         base._id = base._id || base.id;
@@ -143,6 +144,9 @@ export const saveLocalProfile = (user, data) => {
         bio: data.bio ?? current.bio ?? "",
         profilePhoto: data.profilePhoto ?? current.profilePhoto ?? "",
     };
+    if (user?.role === "ADMIN") {
+        profiles[user.email].isDeleted = false;
+    }
     writeProfiles(profiles);
     return profiles[user.email];
 };
@@ -392,7 +396,11 @@ export const deleteLocalPayslip = (id) => {
 export const getLocalPayslipsForUser = (user) => {
     const records = readPayslips();
     if (user?.role === "ADMIN") return records;
-    return records.filter((payslip) => payslip.employee?.email === user?.email || payslip.employeeId === user?.userId);
+    return records.filter((payslip) => 
+        payslip.employee?.email?.toLowerCase() === user?.email?.toLowerCase() || 
+        payslip.employeeId === user?.userId ||
+        payslip.employeeId === getEmployeeIdFromEmail(user?.email)
+    );
 };
 
 export const mergePayslips = (remotePayslips = [], user) => {
