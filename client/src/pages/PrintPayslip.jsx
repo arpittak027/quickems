@@ -5,6 +5,7 @@ import {format} from 'date-fns'
 import api from '../api/axios';
 import { formatINR } from '../utils/currency';
 import { DownloadIcon, Loader2Icon, PrinterIcon } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { useAuth } from '../context/useAuth';
 import { getLocalPayslipById, isLocalRecordId } from '../utils/localDemoData';
 
@@ -42,7 +43,6 @@ const PrintPayslip = () => {
     if(!payslipRef.current) return;
     setDownloading(true)
     try {
-      const { default: html2pdf } = await import("html2pdf.js");
       await html2pdf()
         .set({
           margin: 10,

@@ -57,6 +57,14 @@ const EmployeeDashboard = ({data}) => {
             <Link to="/leave" className='btn-secondary text-center'>
                 Apply for Leave
             </Link>
+            {data.latestPayslip && (
+                <button 
+                    onClick={() => window.open(`/print/payslips/${data.latestPayslip._id || data.latestPayslip.id}`)}
+                    className='btn-secondary text-center inline-flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                >
+                    <FileTextIcon className="w-4 h-4" /> Download Latest Payslip
+                </button>
+            )}
         </div>    
 
     </div>

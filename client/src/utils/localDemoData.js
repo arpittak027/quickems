@@ -424,9 +424,19 @@ export const saveLocalPayslip = ({ employee, month, year, basicSalary, allowance
     return record;
 };
 
+const DELETED_PAYSLIPS_KEY = "quickems.deletedPayslips";
+const readDeletedPayslips = () => safeParse(localStorage.getItem(DELETED_PAYSLIPS_KEY), []);
+const writeDeletedPayslips = (ids) => localStorage.setItem(DELETED_PAYSLIPS_KEY, JSON.stringify(ids));
+
 export const deleteLocalPayslip = (id) => {
     const records = readPayslips().filter((payslip) => (payslip._id || payslip.id) !== id);
     writePayslips(records);
+
+    const deleted = readDeletedPayslips();
+    if (!deleted.includes(id)) {
+        deleted.push(id);
+        writeDeletedPayslips(deleted);
+    }
 };
 
 export const getLocalPayslipsForUser = (user) => {
@@ -440,11 +450,14 @@ export const getLocalPayslipsForUser = (user) => {
 };
 
 export const mergePayslips = (remotePayslips = [], user) => {
+    const deletedIds = readDeletedPayslips();
     const localPayslips = getLocalPayslipsForUser(user);
-    return dedupeBy([...remotePayslips, ...localPayslips], (payslip) => payslip._id || payslip.id).sort((a, b) => {
-        const monthDiff = (Number(b.year) * 12 + Number(b.month)) - (Number(a.year) * 12 + Number(a.month));
-        return monthDiff || sortByLatest(a, b);
-    });
+    return dedupeBy([...remotePayslips, ...localPayslips], (payslip) => payslip._id || payslip.id)
+        .filter((payslip) => !deletedIds.map(String).includes(String(payslip.id)) && !deletedIds.map(String).includes(String(payslip._id)))
+        .sort((a, b) => {
+            const monthDiff = (Number(b.year) * 12 + Number(b.month)) - (Number(a.year) * 12 + Number(a.month));
+            return monthDiff || sortByLatest(a, b);
+        });
 };
 
 export const getLocalPayslipById = (id, user) => {
