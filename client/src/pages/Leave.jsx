@@ -6,7 +6,7 @@ import ApplyLeaveModal from "../components/leave/ApplyLeaveModal"
 import { useAuth } from "../context/useAuth"
 import api from "../api/axios"
 import toast from "react-hot-toast"
-import { deleteLocalLeave, isLocalToken, mergeEmployeeDirectory, mergeLeaves } from "../utils/localDemoData"
+import { deleteLocalLeave, isLocalToken, mergeEmployeeDirectory, mergeLeaves, mergeLocalProfile } from "../utils/localDemoData"
 
 
 const Leave = () => {
@@ -23,7 +23,9 @@ const Leave = () => {
    try {
     const res = await api.get('/leave');
     setLeaves(mergeLeaves(res.data.data || [], user))
-    setIsDeleted(!!res.data.employee?.isDeleted)
+    
+    const profile = mergeLocalProfile(user, res.data.employee || {});
+    setIsDeleted(!!profile.isDeleted)
    } catch (error) {
     setLeaves(mergeLeaves([], user))
     setIsDeleted(false)

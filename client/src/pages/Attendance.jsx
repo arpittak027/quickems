@@ -7,7 +7,7 @@ import AdminAttendanceForm from "../components/attendance/AdminAttendanceForm"
 import api from "../api/axios"
 import {toast} from 'react-hot-toast'
 import { useAuth } from "../context/useAuth"
-import { deleteLocalAttendance, isLocalToken, mergeAttendance, mergeEmployeeDirectory } from "../utils/localDemoData"
+import { deleteLocalAttendance, isLocalToken, mergeAttendance, mergeEmployeeDirectory, mergeLocalProfile } from "../utils/localDemoData"
 
 
 const Attendance = () => {
@@ -24,7 +24,9 @@ const Attendance = () => {
       const res = await api.get("/attendance");
       const json = res.data;
       setHistory(mergeAttendance(json.data || [], user))
-      setIsDeleted(!!json.employee?.isDeleted)
+      
+      const profile = mergeLocalProfile(user, json.employee || {});
+      setIsDeleted(!!profile.isDeleted)
     } catch (error) {
       setHistory(mergeAttendance([], user))
       setIsDeleted(false)
