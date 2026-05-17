@@ -122,10 +122,6 @@ export const mergeLocalProfile = (user, remoteProfile = {}) => {
     };
 
     if (user?.role === "ADMIN") {
-        base.firstName = "Admin";
-        base.lastName = "";
-        base.position = "Administrator";
-        base.department = "Management";
         base.isDeleted = false;
     } else {
         base.id = base.id || base._id || getEmployeeIdFromEmail(base.email);
@@ -141,6 +137,7 @@ export const saveLocalProfile = (user, data) => {
     const current = mergeLocalProfile(user, profiles[user.email] || {});
     profiles[user.email] = {
         ...current,
+        ...data,
         bio: data.bio ?? current.bio ?? "",
         profilePhoto: data.profilePhoto ?? current.profilePhoto ?? "",
     };

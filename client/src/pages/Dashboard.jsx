@@ -5,7 +5,7 @@ import AdminDashboard from "../components/AdminDashboard"
 import api from "../api/axios"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/useAuth"
-import { getLocalDashboardData, isLocalToken } from "../utils/localDemoData"
+import { getLocalDashboardData, isLocalToken, mergeLocalProfile } from "../utils/localDemoData"
 
 const Dashboard = () => {
   const { user } = useAuth()
@@ -17,7 +17,11 @@ const Dashboard = () => {
 
     api.get('/dashboard')
       .then((res) => {
-        setData(res.data)
+        const dashboardData = res.data;
+        if (dashboardData.employee) {
+          dashboardData.employee = mergeLocalProfile(user, dashboardData.employee);
+        }
+        setData(dashboardData)
       })
       .catch((err) => {
         const localData = getLocalDashboardData(user)
